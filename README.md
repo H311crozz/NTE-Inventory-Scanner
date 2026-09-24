@@ -31,6 +31,7 @@ For those who don't want to bother with installing Python, the dependencies and 
 #### Requirements:
 1. [Git](https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.5/Git-2.55.0.5-64-bit.exe)
 **Note: Ensure you select "Add to Path" during installation to allow for Git commands in the CLI or select "Open Git Bash here"**
+
 ![Git Installation](images/Git-Bash.png)
 
 2. [Python](https://www.python.org/ftp/python/3.14.7/python-3.14.7-amd64.exe)
@@ -61,3 +62,13 @@ python app.py
 ## Usage
 After the program opens, you'll see the basic interface: 
 ![gui](images/gui.png)
+
+Generally the program will be able to auto-detect your game process, but you can click "Detect Window" if for some reason it hasn't on startup. You can also select how many Modules/Cartridges you'd like to scan before continuing with the scanning process. 
+
+Best practices are to have the game open, then tab over to the Inventory Scanner and click "Start Scan". The scanner will then pull your game process forward and begin the process of clicking on the first Module or Cartridge, capture it, click on the next one, capture, etc. When it reaches the end of a current page, it will automatically scroll (if you've selected to scan enough items to warrant it.)
+
+After the scanning is done, you'll see an option to export to json, which is the format that NTE-Database takes for its inventory files.
+
+## Demo
+[scanner](images/scanner.mp4)
+
