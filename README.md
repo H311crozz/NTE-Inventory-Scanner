@@ -70,5 +70,5 @@ Best practices are to have the game open, then tab over to the Inventory Scanner
 After the scanning is done, you'll see an option to export to json, which is the format that NTE-Database takes for its inventory files.
 
 ## Demo
-[scanner](images/scanner.mp4)
+
 
