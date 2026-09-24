@@ -1,3 +1,5 @@
+
+
 # NTE Inventory Scanner - An open source scanner for NTE designed to be imported to NTE Database
 ## Why build an open source scanner?
 After finishing my site and wiring everything together, I realized that there was still a major hurdle to using the Optimizer - most players won't want to import every Module and Cartridge manually.
@@ -70,5 +72,6 @@ Best practices are to have the game open, then tab over to the Inventory Scanner
 After the scanning is done, you'll see an option to export to json, which is the format that NTE-Database takes for its inventory files.
 
 ## Demo
+[![Watch the video](https://youtu.be/WbNklLjxjws)](https://youtu.be/WbNklLjxjws)
 
 
