@@ -20,7 +20,6 @@ LEVEL_MAIN_STATS = {
     }
 }
 
-# All 12 Canonical Cartridge Sets in NTE
 CARTRIDGE_SETS = {
     "crimson twin butterflies": ("Crimson Twin Butterflies", "crimson_twin_butterflies"),
     "devil's blood": ("Devil's Blood: Curse", "devils_blood_curse"),
@@ -39,7 +38,7 @@ CARTRIDGE_SETS = {
     "tiny big adventure": ("Tiny Big Adventure", "tiny_big_adventure"),
 }
 
-# Complete Stat Mapping for both Modules and Cartridges
+
 STAT_NAME_MAP = {
     "atk": "atk",
     "attack": "atk",
@@ -65,47 +64,26 @@ STAT_NAME_MAP = {
 }
 
 def detect_shape_from_card(card_image_bgr, shape_family="type_2"):
-    """
-    Analyzes the medallion in the upper-left of the card to determine 
-    the exact canonical polyomino variant.
-    Covers all 12 canonical shapes in the NTE Database:
-      Type 2: type_2a (2x1 V, ar ~ 0.50), type_2b (1x2 H, ar ~ 2.00)
-      Type 3: type_3a (1x3 H, ar ~ 3.00), type_3b (3x1 V, ar ~ 0.33), type_3c..3f (2x2 Corners, ar ~ 1.00)
-      Type 4: type_4a (1x4 H, ar ~ 4.00), type_4b (4x1 V, ar ~ 0.25), type_4c (2x3 Stepped S, ar ~ 1.50), type_4d (3x2 Stepped Z, ar ~ 0.67)
-    """
     h, w = card_image_bgr.shape[:2]
     crop = card_image_bgr[int(h * 0.10):int(h * 0.35), int(w * 0.02):int(w * 0.42)]
     ch, cw = crop.shape[:2]
-
-    # Inner medallion area (excludes outer ring and text banners)
     inner = crop[int(ch * 0.18):int(ch * 0.82), int(cw * 0.18):int(cw * 0.82)]
-    # Blue channel: tile faces have glossy highlights with B > 75, background medallion has B < 55
     blue = inner[:, :, 0]
     tile_mask = cv2.inRange(blue, 75, 255)
-
     contours, _ = cv2.findContours(tile_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     valid = [c for c in contours if cv2.contourArea(c) > 300]
-
     if valid:
         all_pts = np.vstack(valid)
         bx, by, bw, bh = cv2.boundingRect(all_pts)
         aspect_ratio = bw / float(bh)
-
-        # ======================== TYPE 2 (2 Cells) ========================
         if shape_family == "type_2":
-            # type_2a = Vertical (2x1, ar ~ 0.50)
-            # type_2b = Horizontal (1x2, ar ~ 2.00)
             return "type_2b" if aspect_ratio >= 1.15 else "type_2a"
-
-        # ======================== TYPE 3 (3 Cells) ========================
         elif shape_family == "type_3":
             if aspect_ratio > 2.0:
-                return "type_3a"  # Straight Horizontal (1x3)
+                return "type_3a"  
             elif aspect_ratio < 0.5:
-                return "type_3b"  # Straight Vertical (3x1)
+                return "type_3b" 
             else:
-                # Corner Tromino in 2x2 bounding box (aspect_ratio ~ 1.00)
-                # Check which quadrant is empty using Blue channel (tile ~100+, empty ~40)
                 cell_w = bw / 2.0
                 cell_h = bh / 2.0
                 blue_means = {}
@@ -120,39 +98,29 @@ def detect_shape_from_card(card_image_bgr, shape_family="type_2"):
 
                 empty_quad = min(blue_means, key=blue_means.get)
                 corner_map = {
-                    (0, 0): "type_3c",  # [[0, 1], [1, 1]]
-                    (0, 1): "type_3d",  # [[1, 0], [1, 1]]
-                    (1, 0): "type_3e",  # [[1, 1], [0, 1]]
-                    (1, 1): "type_3f"   # [[1, 1], [1, 0]]
+                    (0, 0): "type_3c",  
+                    (0, 1): "type_3d", 
+                    (1, 0): "type_3e",  
+                    (1, 1): "type_3f"  
                 }
                 return corner_map.get(empty_quad, "type_3c")
-
-        # ======================== TYPE 4 (4 Cells) ========================
         elif shape_family == "type_4":
             if aspect_ratio > 2.2:
-                return "type_4a"  # Straight Horizontal (1x4, ar ~ 4.00)
+                return "type_4a"  
             elif aspect_ratio < 0.45:
-                return "type_4b"  # Straight Vertical (4x1, ar ~ 0.25)
+                return "type_4b"  
             elif aspect_ratio >= 1.05:
-                return "type_4c"  # Stepped S Horizontal (2x3, ar ~ 1.50)
+                return "type_4c"  
             else:
-                return "type_4d"  # Stepped Z Vertical (3x2, ar ~ 0.67)
-
-    # Fallbacks per family
+                return "type_4d"  
     return "type_2a" if shape_family == "type_2" else f"{shape_family}a"
 
 def parse_module_card(card_image_bgr):
-    """
-    Parses either a Module or a Cartridge card into canonical database format.
-    """
     results, _ = ocr_engine(card_image_bgr)
     if not results:
         return None
-
     extracted_lines = [r[1].strip() for r in results]
     full_text = " ".join(extracted_lines)
-
-    # 1. Level Detection (+ 20 or + 0)
     level = 0
     lvl_match = re.search(r"\+\s*(\d{1,2})", full_text)
     if lvl_match:
@@ -160,10 +128,7 @@ def parse_module_card(card_image_bgr):
             level = int(lvl_match.group(1))
         except ValueError:
             level = 0
-
-    # 2. Branch: Cartridge vs Module
     if "cartridge" in full_text.lower():
-        # Identify Set Name & Set ID
         set_name = "Lost Radiance"
         set_id = "lost_radiance"
         for line in extracted_lines:
@@ -173,8 +138,6 @@ def parse_module_card(card_image_bgr):
                     set_name = sname
                     set_id = sid
                     break
-
-        # Parse Single Main Stat & Substats
         section = "header"
         main_stat_key = "crit_rate"
         main_stat_val = 30.0
@@ -218,7 +181,6 @@ def parse_module_card(card_image_bgr):
                             final_key = f"{final_key}_pct" if is_pct else f"{final_key}_flat"
                         substats.append({"name": final_key, "value": val})
                         break
-
         return {
             "item_type": "cartridge",
             "name": set_name,
@@ -231,7 +193,6 @@ def parse_module_card(card_image_bgr):
         }
 
     else:
-        # MODULE PARSING
         substats = []
         main_stats = {}
         is_in_substats = False
@@ -260,10 +221,7 @@ def parse_module_card(card_image_bgr):
                     elif is_in_substats:
                         substats.append({"name": final_key, "value": val})
                     break
-
-        # Determine Shape Family: Text + Exact Main Stat Cross-Validation
         shape_family = None
-        # Check Main Stats exact signature first (100% foolproof):
         atk_val = main_stats.get("atk_flat", 0)
         hp_val = main_stats.get("hp_flat", 0)
         if atk_val in [84, 16] or hp_val in [1120, 224]:
@@ -272,8 +230,6 @@ def parse_module_card(card_image_bgr):
             shape_family = "type_3"
         elif atk_val in [42, 8] or hp_val in [560, 112]:
             shape_family = "type_2"
-
-        # Fallback to OCR text if main stats were unreadable
         if not shape_family:
             if re.search(r"Type\s*(?:IV|4)\b", full_text, re.IGNORECASE):
                 shape_family = "type_4"
@@ -283,7 +239,6 @@ def parse_module_card(card_image_bgr):
                 shape_family = "type_2"
             else:
                 shape_family = "type_2"
-
         shape_type = detect_shape_from_card(card_image_bgr, shape_family)
 
         family_table = LEVEL_MAIN_STATS.get(shape_family, LEVEL_MAIN_STATS["type_2"])
@@ -293,7 +248,6 @@ def parse_module_card(card_image_bgr):
             "atk_flat": main_stats.get("atk_flat", expected_main["atk_flat"]),
             "hp_flat": main_stats.get("hp_flat", expected_main["hp_flat"])
         }
-
         return {
             "item_type": "module",
             "shape_type": shape_type,
