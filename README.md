@@ -31,7 +31,7 @@ For those who don't want to bother with installing Python, the dependencies and 
 #### Requirements:
 1. [Git](https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.5/Git-2.55.0.5-64-bit.exe)
 **Note: Ensure you select "Add to Path" during installation to allow for Git commands in the CLI or select "Open Git Bash here"**
-[Git Installation](./images/Git-Bash.png)
+![Git Installation](images/Git-Bash.png)
 
 2. [Python](https://www.python.org/ftp/python/3.14.7/python-3.14.7-amd64.exe)
 **Note: Ensure you select "Add Python to Path" during installation**
@@ -60,4 +60,4 @@ python app.py
 
 ## Usage
 After the program opens, you'll see the basic interface: 
-[gui](./images/gui.png)
+![gui](images/gui.png)
