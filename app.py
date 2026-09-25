@@ -1,4 +1,4 @@
-﻿import threading
+import threading
 import time
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
@@ -7,6 +7,7 @@ from core.capture import find_nte_window, get_window_client_rect, capture_screen
 from core.detector import parse_module_card
 from core.navigator import click_module_slot, scroll_page_down
 from core.exporter import export_inventory_json
+from core.merger import merge_inventory_files
 import ctypes
 import win32api
 import win32con
@@ -121,7 +122,7 @@ class NTEScannerApp(ctk.CTk):
             height=38,
             command=self.toggle_scan
         )
-        self.start_btn.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.start_btn.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         self.export_btn = ctk.CTkButton(
             self.actions_row,
@@ -133,7 +134,18 @@ class NTEScannerApp(ctk.CTk):
             height=38,
             command=self.export_data
         )
-        self.export_btn.pack(side="right", fill="x", expand=True, padx=(8, 0))
+        self.export_btn.pack(side="left", fill="x", expand=True, padx=4)
+
+        self.merge_btn = ctk.CTkButton(
+            self.actions_row,
+            text="🔀 MERGE JSONs",
+            font=ctk.CTkFont(family="Consolas", size=13, weight="bold"),
+            fg_color="#0f766e",
+            hover_color="#115e59",
+            height=38,
+            command=self.merge_data
+        )
+        self.merge_btn.pack(side="right", fill="x", expand=True, padx=(6, 0))
 
         self.after(500, self.check_game_window)
 
@@ -271,6 +283,50 @@ class NTEScannerApp(ctk.CTk):
                 "Success", 
                 f"Saved {len(self.scanned_modules)} Modules and {len(self.scanned_cartridges)} Cartridges!\n\nUpload this JSON on the NTE Database Optimizer page."
             )
+
+    def merge_data(self):
+        file_paths = filedialog.askopenfilenames(
+            title="Select Scan JSON Files to Merge (Hold Ctrl to select multiple)",
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
+        )
+        if not file_paths:
+            return
+
+        if len(file_paths) < 2:
+            ans = messagebox.askyesno(
+                "Notice",
+                f"You only selected {len(file_paths)} file.\nDo you still want to proceed?"
+            )
+            if not ans:
+                return
+
+        output_path = filedialog.asksaveasfilename(
+            title="Save Combined Master Inventory As...",
+            defaultextension=".json",
+            filetypes=[("JSON Files", "*.json")],
+            initialfile="master_inventory.json"
+        )
+        if not output_path:
+            return
+
+        try:
+            results = merge_inventory_files(file_paths, output_path=output_path, deduplicate=True)
+            self.log(f"🔀 Merged {results['files_merged']} files into: {output_path}")
+            self.log(f"   ✓ Total Modules: {results['total_modules']}")
+            self.log(f"   ✓ Total Cartridges: {results['total_cartridges']}")
+            self.log(f"   ✓ Duplicates skipped: {results['duplicates_skipped']}")
+            messagebox.showinfo(
+                "Merge Success",
+                f"Successfully merged {results['files_merged']} scan files!\n\n"
+                f"• Modules: {results['total_modules']}\n"
+                f"• Cartridges: {results['total_cartridges']}\n"
+                f"• Duplicates skipped: {results['duplicates_skipped']}\n\n"
+                f"Saved to:\n{output_path}\n\n"
+                f"You can now upload this combined file to the NTE Database site!"
+            )
+        except Exception as e:
+            self.log(f"❌ Error merging files: {e}")
+            messagebox.showerror("Merge Error", f"Failed to merge files:\n{e}")
 
 if __name__ == "__main__":
     app = NTEScannerApp()
