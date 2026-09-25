@@ -72,7 +72,7 @@ Best practices are to have the game open, then tab over to the Inventory Scanner
 
 After the scanning is done, you'll see an option to export to json, which is the format that NTE-Database takes for its inventory files.
  
-### Merging Multiple Batch Scans
+### Merging Multiple Batch Scans [NEW!]
 If you prefer to scan your inventory in batches (e.g., scanning Cartridges first, or scanning different rarity filters across multiple sessions), you can combine multiple JSON exports into a single master file:
 
 - **Via GUI:** Click the **"🔀 MERGE JSONs"** button on the scanner interface. Select two or more `.json` files (hold `Ctrl` or `Shift` to pick multiple), choose where to save your `master_inventory.json`, and the scanner will automatically combine them, re-index IDs, and remove any duplicate scans.
