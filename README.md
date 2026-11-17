@@ -1,6 +1,6 @@
 
 
-# NTE Inventory Scanner - An open source scanner for NTE designed to be imported to NTE Database
+# NTE Inventory Scanner - A scanner for NTE designed to be imported to NTE Database
 ## Why build an open source scanner?
 After finishing my site and wiring everything together, I realized that there was still a major hurdle to using the Optimizer - most players won't want to import every Module and Cartridge manually.
 Should you trust an executable file? Let's recall the first things we learned as kids:
